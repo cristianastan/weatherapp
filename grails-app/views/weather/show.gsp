@@ -16,10 +16,6 @@
 </head>
 
 <body>
-    ${result.Status} <br/>
-    <p>Country: ${result.Country} </p> <br/>
-    <p> Description: ${result.Description} </p> <br/>
-    <p> Temperature: ${result.Temperature} </p> <br/>
-    <p> Humidity: ${result.Humidity} </p> <br/>
+
 </body>
 </html>

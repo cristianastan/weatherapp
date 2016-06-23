@@ -13,10 +13,29 @@ class WeatherFetchService {
     def baseUrl = "http://api.openweathermap.org/data/2.5/weather?"
     def APPID = "&appid=" + API_KEY
 
+    def newRow(info) {
 
-    def getData(String location) {
+        String country, description
+        double temp, humidity
 
-        //def tableEntry = Weather.findAllByLocation(location)
+        country = info.Country
+        description = info.Description
+        //description = description.substring(1, description.length() - 1)
+        temp = info.Temperature
+        humidity = info.Humidity
+
+
+        Weather weather = new Weather()
+        weather.location = info.Location
+        weather.country = country
+        weather.description = description
+        weather.humidity = humidity
+        weather.temp = temp
+
+        weather.save(flush:true, failOnError: true)
+    }
+
+    def callFromSite( String location) {
 
         def API_KEY = "61ae4591669ba9f38b46d26e6ee808d5"
         def addr
@@ -46,17 +65,67 @@ class WeatherFetchService {
         temp = resp.body.main.temp
         humidity = resp.body.main.humidity
 
-
-        Weather weather = new Weather()
-        weather.location = location
-        weather.country = country
-        weather.description = description
-        weather.humidity = humidity
-        weather.temp = temp
-
-        weather.save(flush:true, failOnError: true)
-
         return ["Status": "", "Location": location, "Country": country, "Description": description, "Temperature": temp, "Humidity": humidity]
+    }
+
+
+    def getFromTable(tableRow) {
+        String country, description
+        double temp, humidity
+
+        country = tableRow.country
+        description = tableRow.description
+        temp = tableRow.temp
+        humidity = tableRow.humidity
+
+        return ["Status": "", "Location": tableRow.location, "Country": country, "Description": description, "Temperature": temp, "Humidity": humidity]
+    }
+
+    def getHours(tableRow) {
+
+        Date crtDate = new Date()
+        Date tableDate = tableRow.lastUpdated
+
+        use(groovy.time.TimeCategory) {
+            def duration = crtDate - tableDate
+            return duration.hours
+        }
+    }
+
+    def updateDatabase(tableRow) {
+
+        def info = callFromSite(tableRow.location)
+
+        tableRow.temp = info.Temperature
+        tableRow.humidity = info.Humidity
+        tableRow.description = info.Description
+        tableRow.lastUpdated = new Date()
+        tableRow.save(flush:true, failOnError: true)
+
+    }
+
+    def getData(String location) {
+
+        Weather tableRow = Weather.findByLocation(location)
+
+        if(tableRow == null) {
+            def info =  callFromSite(location)
+            if(!info.Status.equals("Datele introduse sunt incorecte!"))
+                newRow(info)
+
+            return info
+        }
+
+        int hours = getHours(tableRow)
+
+        if(hours >= 1) {
+            updateDatabase(tableRow)
+            return callFromSite(location)
+        }
+
+
+        return getFromTable(tableRow)
+        //return ["Status": "", "Location": tableRow.location, "Country": tableRow.country.get(0), "Description": tableRow.description.get(0), "Temperature": tableRow.temp.get(0), "Humidity": tableRow.humidity]
     }
 
 }

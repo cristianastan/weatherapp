@@ -14,6 +14,6 @@ class WeatherController {
         def location = params.location
         def result =  weatherFetchService.getData(location)
 
-        render(view: "show", model:['result':result])
+        render(view: "index", model:['result':result])
     }
 }
