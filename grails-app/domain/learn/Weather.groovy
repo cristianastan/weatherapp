@@ -9,8 +9,6 @@ class Weather {
     String description
     Date lastUpdated
 
-
-
     static constraints = {
     }
 }
