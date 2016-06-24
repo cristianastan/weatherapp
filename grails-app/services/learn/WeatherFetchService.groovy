@@ -11,6 +11,7 @@ class WeatherFetchService {
     def rest
     def API_KEY = "61ae4591669ba9f38b46d26e6ee808d5"
     def baseUrl = "http://api.openweathermap.org/data/2.5/weather?"
+    def units = "&units=metric"
     def APPID = "&appid=" + API_KEY
 
     def newRow(info) {
@@ -46,7 +47,7 @@ class WeatherFetchService {
         else
             query = "q="
 
-        addr = baseUrl + query + location + APPID
+        addr = baseUrl + query + location + units + APPID
         def resp = rest.get(addr) {
             contentType 'application/json'
             accept JSONObject
